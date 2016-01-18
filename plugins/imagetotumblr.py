@@ -2,6 +2,7 @@ import irc3
 from blitzdb import Document, FileBackend
 import pytumblr
 from plugins import PluginConfig
+import re
 
 
 class PostedImage(Document):
@@ -24,7 +25,10 @@ class ImageToTumblr(object):
                               "Tumblr poster ready! Posting all URLs with: %s" % self.image_filetypes
                               )
 
-    def post_image(self, url, poster):
+    def post_image(self, text, poster):
+        # Strip everything but the address
+        m = re.match(r'.*(?P<url>http.*)', text)
+        url = m.group('url')
         # Make sure we didn't do this one already
         try:
             self.db.get(PostedImage, {'url': url})
@@ -47,7 +51,6 @@ class ImageToTumblr(object):
                 return
         else:
             irc3.base.logging.log(irc3.base.logging.WARN, "Not posting duplicate image: %s" % url)
-
             return
 
     @irc3.event(irc3.rfc.PRIVMSG)  # Triggered on every message anywhere.
