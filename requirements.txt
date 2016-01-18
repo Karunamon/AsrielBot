@@ -1,3 +1,4 @@
 irc3
 blitzdb
 humanize
+pytumblr
