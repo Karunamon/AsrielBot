@@ -1,5 +1,4 @@
 import ConfigParser
-import irc3
 
 ini = ConfigParser.ConfigParser()
 ini.read('config.ini')
@@ -34,18 +33,40 @@ class MessageRetargeter:
 
     def msg(self, mask, target, msg):
         """
-        :param mask:
-        :type mask: irc3.IrcString
-        :param target:
-        :type target: irc3.IrcString
-        :param msg:
+        Retargets incoming messages - takes the mask and the target and determines if the original message was sent
+        in private message or in a channel, and redirects appropriately. I have absolutely no idea why we have to
+        check for both mask and target - you'd think since this is only ever called in the context of an irc3.command,
+        that it would work the same way every time. Spooky.
+
+        :type mask: irc3.utils.ircstring
+        :type target: irc3.utils.ircstring
         :type msg: str
-        :type self: irc3.bot
         """
-        if target == self.bot.nick:
-            newtarget = mask.nick
-            self.bot.privmsg(newtarget, msg)
+        if mask == self.bot.nick:
+            self.bot.privmsg(target.nick, msg)
+        elif target == self.bot.nick:
+            self.bot.privmsg(mask.nick, msg)
         elif mask.is_channel:
             self.bot.privmsg(mask, msg)
         else:
             self.bot.privmsg(target, msg)
+
+
+class BotUtils:
+    """
+    Miscellaneous functions for use by the bot.
+
+    :type bot: irc3.bot
+    """
+    def __init__(self, bot):
+        self.bot = bot
+
+    def cantfind_string(self, arg):
+        """
+        Returns a friendly message indicating that the bot can't find something.
+
+        :arg arg: The thing that couldn't be found
+        """
+
+
+

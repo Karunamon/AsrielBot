@@ -3,7 +3,7 @@ from time import ctime
 
 import humanize
 import irc3
-from blitzdb import FileBackend, Document, queryset
+from blitzdb import FileBackend, Document
 from irc3.plugins.command import command
 
 from plugins import PluginConfig, MessageRetargeter
@@ -16,7 +16,7 @@ class Memo(Document):
 def contains_private_messages(msgset):
     """
     :param msgset: A Memo queryset
-    :type msgset: queryset
+    :type msgset: blitzdb.queryset
     :return: True if any of the messages are private, False otherwise.
     :rtype: Boolean
     """
@@ -46,20 +46,23 @@ class Memos(object):
         Usage:
             %%note <name> <text>...
         """
+        if mask.is_channel:
+            pubmsg = True
+        else:
+            pubmsg = False
+
         newmemo = Memo(
                 {
                     'sender': target.nick.lower(),
                     'recipient': args['<name>'].lower(),
-                    'public': False if target == self.bot.nick else True,
+                    'public': pubmsg,
                     'timestamp': ctime(),
                     'text': ' '.join(args['<text>'])
                 }
         )
-
         newmemo.save(self.db)
         self.db.commit()
 
-        # FIXME: Centralize this using MessageRetargeter or similar.. confirmation messages be borked
         confirmation_msg = "Your note for %s has been queued for delivery." % args['<name>']
         self.msg(mask, target, confirmation_msg)
 
@@ -92,6 +95,6 @@ class Memos(object):
                 self.msg(mask, target, message_text)
                 self.db.delete(msg)
             else:
-                self.msg(mask, mask.nick, message_text)
+                self.bot.privmsg(mask.nick, message_text)
                 self.db.delete(msg)
         self.db.commit()
