@@ -4,6 +4,7 @@ import random
 import irc3
 from irc3.dec import event
 from irc3.plugins.command import Commands, command
+import re
 
 from plugins import PluginConfig
 
@@ -28,6 +29,16 @@ def count_shadowrun(arg):
     return result
 
 
+def has_math(arg):
+    symbols = {'+', '-', '*', '/'}
+    for char in arg.split():
+        if char in symbols:
+            return True
+        else:
+            return False
+
+
+
 @irc3.plugin
 class Dice(object):
     def __init__(self, bot):
@@ -38,7 +49,8 @@ class Dice(object):
     @command
     def roll(self, mask, target, args):
         """
-        Rolls dice. "<dice>" Can be understood as d notation like 2d20 or 1d6.
+        Rolls dice. "<dice>" Can be understood as d notation like 2d20 or 1d6. It can also contain a simple math
+        expression like +5 or *2.
 
         Usage:
             %%roll <dice>
@@ -48,9 +60,10 @@ class Dice(object):
         Options:
             -s, --shadowrun  Outputs dice in Shadowrun action format.
         """
-        d = args['<dice>'].split("d")
-        count = int(d[0])
-        sides = int(d[1])
+        d = re.match(r'(?P<dice>\d+)d(?P<sides>\d+)(?P<math>[\+|\-|\*]\d+)?', args['<dice>'])
+        count = int(d.group('dice'))
+        sides = int(d.group('sides'))
+        math = d.group('math') if d.group('math') else None
 
         if sides > 100:
             self.bot.privmsg(target, "That's an absurd number of sides.")
@@ -69,15 +82,23 @@ class Dice(object):
         for n in range(0, count):
             dice.append(self.rng.randint(1, sides))
 
-        if args["<description_text>"]:
-            result += (" %s" % ' '.join(args["<description_text>"]))
+        # Sum the results
+        result += ("=> %s" % sum(dice))
 
+        # Apply any math transforms
+        if math:
+            result += "%s ==> %s" % (d.group('math'), int(eval("%s %s" % (sum(dice), math))))
+
+        # Concatenate the description test
+        if args["<description_text>"]:
+            result += (": %s" % ' '.join(args["<description_text>"]))
+
+        # Shell out to shadowrun if necessary
         if args["-s"]:
             result += (" %s" % count_shadowrun(dice))
 
         self.bot.privmsg(target, str(dice) + result)
 
-    # NOTE: Use this pattern later for aliasing commands
     @event("(@(?P<tags>\S+) )?:(?P<mask>\S+) PRIVMSG (?P<target>\S+) :(?P<data>\d+d\d+.*)")
     def easy_roll(self, mask, target, data):
         self.bot.get_plugin(Commands).on_command(cmd='roll', mask=mask, target=target, data=data)
