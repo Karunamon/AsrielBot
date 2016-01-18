@@ -56,5 +56,5 @@ class ImageToTumblr(object):
     @irc3.event(irc3.rfc.PRIVMSG)  # Triggered on every message anywhere.
     def parse_image(self, target, mask, data, event):
         for extension in self.image_filetypes:
-            if "." + extension in data:
+            if "." + extension.lower() in data:
                 self.post_image(data, mask.nick)
