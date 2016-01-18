@@ -51,6 +51,9 @@ class Memos(object):
         else:
             pubmsg = False
 
+        if args['<name>'] == self.bot.nick:
+            self.msg(mask, target, "You can't leave notes for me, silly :)")
+
         newmemo = Memo(
                 {
                     'sender': target.nick.lower(),
