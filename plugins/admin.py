@@ -35,3 +35,15 @@ class Admin(object):
         except Exception as e:
             self.bot.privmsg(target, traceback.format_exc(e))
             raise e
+
+    @command(permission='admin', show_in_help_list=True)
+    def say(self, mask, target, args):
+        """
+        Speak a message to the specified target, either a person or a channel. (Restricted)
+
+        Usage:
+            %%say <target> <message>...
+        """
+        tgt = args['<target>']
+        msg = ' '.join(args['<message>'])
+        self.bot.privmsg(tgt, msg)
