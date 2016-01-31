@@ -1,10 +1,16 @@
+import os
 import random
+import thread
+import uuid
+from time import sleep
 
 import irc3
 from blitzdb import Document, FileBackend
+from flask import Flask, request
+from flask.ext.mako import MakoTemplates
+from flask.ext.mako import render_template
 from irc3 import event
 from irc3.plugins.command import command, Commands
-from time import sleep
 
 from plugins import PluginConfig, MessageRetargeter
 
@@ -13,14 +19,32 @@ class Profile(Document):
     pass
 
 
+class Session(Document):
+    pass
+
+
+tmpl_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'web_templates')
+
+
 @irc3.plugin
 class Profiles(object):
     def __init__(self, bot):
         self.bot = bot
+
         self.cfg = PluginConfig(self)
         self.db = FileBackend(self.cfg.get('main_db'))
+
         mtt = MessageRetargeter(bot)
         self.msg = mtt.msg
+
+        web = Flask(__name__, template_folder=tmpl_dir)
+        mako = MakoTemplates()
+        mako.init_app(web)
+
+        # Add routes here
+        web.add_url_rule('/edit_web/<args>', 'edit_web', self.edit_web, methods=['GET', 'POST'])
+
+        thread.start_new_thread(web.run, (), {'host': '0.0.0.0'})
 
     @command
     def learn(self, mask, target, args):
@@ -183,3 +207,95 @@ class Profiles(object):
     @event("(@(?P<tags>\S+) )?:(?P<mask>\S+) PRIVMSG (?P<target>\S+) :\?\? (?P<data>.*)")
     def easy_query(self, mask, target, data):
         self.bot.get_plugin(Commands).on_command(cmd='query', mask=mask, target=target, data=data)
+
+    ####
+    # All web stuff below this point
+    #
+
+    @command
+    def edit(self, mask, target, args):
+        """
+        Sends you a webpage link to edit <name>. Great for longer profiles. Make sure to keep the URL you are given
+        secure, as with it, anyone can edit your profiles.
+
+        Usage:
+            %%edit <name>
+        """
+        # TODO: Clear any existing sessions the user has
+
+        data = {
+            'id': str(uuid.uuid4()),
+            'name': mask.nick,
+            'profile': args['<name>']
+        }
+
+        newses = Session(data)
+        self.db.save(newses)
+        self.db.commit()
+        self.bot.privmsg(mask.nick,
+                         "An editor has been set up for you at http://skaianet.tkware.us:5000/edit_web/%s" % str(
+                                 data['id']))
+        self.bot.privmsg(mask.nick, "Be very careful not to expose this address - with it, anyone can edit your stuff")
+
+    def edit_web(self, args):
+        # Web endpoint: /edit_web/<args>
+
+        if request.method == 'GET':
+            # Does the session exist?
+            try:
+                edit_session = self.db.get(Session, {'id': args})
+            except Session.DoesNotExist:
+                return render_template('youfail.html',
+                                       bot=self.bot,
+                                       failreason='Invalid Session',
+                                       userfail=True)
+            # Does the profile exist?
+            name = edit_session.profile
+            try:
+                profile = self.db.get(Profile, {'name': name.lower()})
+            except Profile.DoesNotExist:
+                return render_template('youfail.html',
+                                       bot=self.bot,
+                                       failreason='I cannot find "%s" in the records.' % name
+                                       )
+            # Kick off to the edit page!
+            return render_template('edit.html',
+                                   bot=self.bot,
+                                   profile=profile,
+                                   username=edit_session.name,
+                                   sessionid=edit_session.id
+                                   )
+        elif request.method == 'POST':
+            # We have to look up the session ID one more time. Something could have happened to the profile
+            # since we created the session.
+            try:
+                edit_session = self.db.get(Session, {'id': request.form['ID']})
+            except Session.DoesNotExist:
+                return render_template('youfail.html',
+                                       bot=self.bot,
+                                       failreason='Invalid Session',
+                                       userfail=True)
+            name = request.form['profile']
+            try:
+                profile = self.db.get(Profile, {'name': request.form['profile']})
+            except Profile.DoesNotExist:
+                return render_template('youfail.html',
+                                       bot=self.bot,
+                                       failreason='I cannot find "%s" in the records.' % name,
+                                       userfail=True
+                                       )
+
+            # Now with the profile in hand, blank the lines field and rebuild it from the form.
+            # Here we grab all numeric items from the submission, sort it, and one by one refill the DB object.
+            lines = [item for item in request.form if item.isdigit()]
+            lines.sort()
+            profile.lines = []
+            for item in lines:
+                profile.lines.append(request.form[item])
+            self.db.save(profile)
+            self.db.delete(edit_session)
+            self.db.commit()
+            return render_template('done.html',
+                                   bot=self.bot,
+                                   profile=profile.name
+                                   )

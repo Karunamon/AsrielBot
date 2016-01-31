@@ -1,0 +1,15 @@
+<%inherit file='/layout.html'/>
+
+<%block name='body'>
+    <div class="alert alert-danger" role="alert">
+        <strong><i class="glyphicon glyphicon-alert"></i>  ${failreason}</strong>
+        <br>
+        <i>Sorry, that's all we know. Ask the bot owner for more information.</i>
+        <br><br>
+        %if userfail:
+            <iframe class="center-block" src="http://annoyingdog.ytmnd.com/" width="800" height="600">Insert humorous
+                video here
+            </iframe>
+        %endif
+    </div>
+</%block>

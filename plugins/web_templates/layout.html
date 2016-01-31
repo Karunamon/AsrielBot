@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Asrielbot</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+</head>
+<body>
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css">
+
+<nav class="navbar navbar-default">
+    <div class="container-fluid">
+        <div class="navbar-header">
+            <span class="navbar-brand">${bot.nick} Profile Editor</span>
+        </div>
+        <ul class="nav navbar-nav navbar-right">
+            % if username:
+                <p class="navbar-text">Welcome, ${username}</p>
+            % else:
+                <p class="navbar-text">Unknown user</p>
+            % endif
+        </ul>
+    </div>
+</nav>
+
+<script src="https://code.jquery.com/jquery-2.2.0.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"></script>
+
+<div class="container">
+    ${self.body()}
+</div>
+
+</body>
+</html>

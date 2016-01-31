@@ -2,3 +2,5 @@ irc3
 blitzdb
 humanize
 pytumblr
+flask
+Flask-Mako

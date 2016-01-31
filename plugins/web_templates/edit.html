@@ -1,0 +1,54 @@
+<%inherit file='/layout.html'/>
+<%block name='body'>
+    <script type="text/javascript">
+        function getLastField() {
+            var f = document.getElementsByClassName('form-control');
+            var arr = [].slice.call(f);
+            return Number(arr.pop().name);
+        }
+
+        function addField() {
+            var f = document.getElementById('profile-form');
+            //Properties of the new textbox
+            var e = document.createElement("input");
+            e.setAttribute("class", "form-control");
+            e.setAttribute("type", "text");
+            e.setAttribute("name", getLastField() + 1);
+            e.setAttribute("id", getLastField() + 1);
+            f.insertBefore(e, f.children.buttons);
+        }
+
+        function removeField() {
+            var f = document.getElementById(String(getLastField()));
+            if (getLastField() === 0) {
+                alert('You should delete the profile from chat instead.')
+            } else {
+                f.remove();
+            }
+        }
+    </script>
+    <h5>Editing ${profile.name}:</h5>
+    <div class="well-sm">
+        <form method="post" id="profile-form">
+            %for line in profile.lines:
+                <div class="form-group">
+                    <input class="form-control" type="text" value="${line.rstrip()}" name="${loop.index}"
+                           id="${loop.index}">
+                </div>
+            %endfor
+            <input name="ID" type="hidden" value="${sessionid}">
+            <input name="profile" type="hidden" value="${profile.name}">
+            <div id="buttons">
+                <button id="addline" type="button" onclick="addField();" class="btn btn-primary"><i
+                        class="glyphicon glyphicon-triangle-bottom"></i> Add Line
+                </button>
+                <button id="delline" type="button" onclick="removeField();" class="btn btn-danger"><i
+                        class="glyphicon glyphicon-triangle-top"></i> Remove Line
+                </button>
+                <button id='save' type="submit" class="btn btn-success"><i class="glyphicon glyphicon-save"></i> Save
+                    Changes
+                </button>
+            </div>
+        </form>
+    </div>
+</%block>
