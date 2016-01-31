@@ -29,16 +29,6 @@ def count_shadowrun(arg):
     return result
 
 
-def has_math(arg):
-    symbols = {'+', '-', '*', '/'}
-    for char in arg.split():
-        if char in symbols:
-            return True
-        else:
-            return False
-
-
-
 @irc3.plugin
 class Dice(object):
     def __init__(self, bot):
