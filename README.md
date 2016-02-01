@@ -60,6 +60,8 @@ anything you need to display repetitively, such as channel rules, or the address
 for your clan's TF2 server, or a particularly funny quote that someone has
 inadvertently made...
 
+### Basic Usage
+
 To store information, you use **?learn (name) (associated info)**, and then
 **?? (name)** to retrieve it:
 
@@ -78,23 +80,30 @@ Lines can be deleted by **?forget (name)**, but only either by the bot owner
 this system only checks nicknames, not hostmasks (as most sane servers have
 systems to prevent squatting on nicknames.)
 
+### Random Lines
+
 Let's say you want to save quotes, or some other information where you want a
 different line to come back every time? **?learn** the info as normal, adding
 as many lines as you please, then do **?toggle_random** on that item. From then
 on, the bot will retrieve a random item whenever an item is **??**'d.
 
+### Web Editing
+
+Furthermore, a web editing system exists. A user can type **?edit (name)** on 
+something they own, and they will receive a randomly-generated URL to edit
+the profile in a graphical environment.
 ## Dice roller
 
 AsrielBot's dice roller allows you to roll arbitrary combinations of dice with
 arbitrary mathematical functions carried out on the results. The command looks
 like:
 
- `(number of dice)d(number of sides per dice)(math modifier)(options)(text)`
+    (number of dice)d(number of sides per dice)(math modifier)(options)(text)
 
 That looks really complicated, but here are some examples:
 
-    `<someguy> 2d20+5 TomFubar to hit`
-    `<AsrielBot> [9, 5]=> 14+5 ==> 19`
+    <someguy> 2d20+5 TomFubar to hit
+    <AsrielBot> [9, 5]=> 14+5 ==> 19, TomFubar to hit
 
 This would roll two 20-sided dice, and add 5 to the overall result.
 
@@ -103,11 +112,11 @@ than just speaking a dice expression.
 
 ### Shadowrun:
 
-    **?roll (number of dice)d6 -s (text)**
+Use the -s flag to **?roll**:
 
-        `<SomeGuy> ?roll 10d6 -s Hacking the gibson`
-        `<AsrielBot> [4, 2, 2, 1, 4, 6, 6, 2, 6, 5]=> 38 (4 hits, 1 glitches)`
-
+    ?roll (number of dice)d6 -s (text)
+    <SomeGuy> ?roll 10d6 -s Hacking the gibson
+    <AsrielBot> [4, 2, 2, 1, 4, 6, 6, 2, 6, 5]=> 38 (4 hits, 1 glitches) (hacking the gibson)
 
 ## Tumblr Image Poster
 
