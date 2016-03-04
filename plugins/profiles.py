@@ -229,13 +229,26 @@ class Profiles(object):
             'profile': args['<name>']
         }
 
-        newses = Session(data)
-        self.db.save(newses)
-        self.db.commit()
-        self.bot.privmsg(mask.nick,
-                         "An editor has been set up for you at http://skaianet.tkware.us:5000/edit_web/%s" % str(
-                                 data['id']))
-        self.bot.privmsg(mask.nick, "Be very careful not to expose this address - with it, anyone can edit your stuff")
+        name = args['<name>'].lower()
+
+        try:
+            profile = self.db.get(Profile, {'name': name})
+        except Profile.DoesNotExist:
+            self.msg(mask, target, 'I cannot find "%s" in the records.' % name)
+            return
+
+        if profile.owner == mask.nick.lower():
+            newses = Session(data)
+            self.db.save(newses)
+            self.db.commit()
+            self.bot.privmsg(mask.nick,
+                             "An editor has been set up for you at http://skaianet.tkware.us:5000/edit_web/%s" % str(
+                                     data['id']))
+            self.bot.privmsg(mask.nick,
+                             "Be very careful not to expose this address - with it, anyone can edit your stuff")
+        else:
+            self.msg(mask, target, 'You are not authorized to edit "%s". Ask %s instead.'
+                     % (name, profile.owner))
 
     def edit_web(self, args):
         # Web endpoint: /edit_web/<args>
