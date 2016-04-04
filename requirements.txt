@@ -4,3 +4,4 @@ humanize
 pytumblr
 flask
 Flask-Mako
+six

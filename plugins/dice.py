@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 import random
+import re
 
 import irc3
 from irc3.dec import event
 from irc3.plugins.command import Commands, command
-import re
 
 from plugins import PluginConfig
 
@@ -50,11 +50,17 @@ class Dice(object):
         Options:
             -s, --shadowrun  Outputs dice in Shadowrun action format.
         """
-        d = re.match(r'(?P<dice>\d+)d(?P<sides>\d+)(?P<math>[\+|\-|\*]\d+)?', args['<dice>'])
+        d = re.match(r'(?P<rolls>\d#)?(?P<dice>\d+)d(?P<sides>\d+)(?P<math>[\+|\-|\*]\d+)?', args['<dice>'])
         count = int(d.group('dice'))
         sides = int(d.group('sides'))
+
+        rolls = int(d.group('rolls')) if d.group('rolls') else None
         math = d.group('math') if d.group('math') else None
 
+        if rolls and rolls > 10:
+            self.bot.privmsg(target, "That's way too many rolls.")
+            irc3.base.logging.log(irc3.base.logging.WARN,
+                                  "%s in %s tried to roll %d sets of dice" % (mask.nick, target, rolls))
         if sides > 100:
             self.bot.privmsg(target, "That's an absurd number of sides.")
             irc3.base.logging.log(irc3.base.logging.WARN,

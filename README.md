@@ -125,7 +125,7 @@ from being reposted.
 
 ## Requirements
 
-* Python 2.7.x (*NOT* 3.x - sorry!)
+* Python 3.5 or better
 * Pip
 
 ## Installing and getting started

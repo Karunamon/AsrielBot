@@ -1,6 +1,6 @@
+import _thread
 import os
 import random
-import thread
 import uuid
 from time import sleep
 
@@ -44,7 +44,7 @@ class Profiles(object):
         # Add routes here
         web.add_url_rule('/edit_web/<args>', 'edit_web', self.edit_web, methods=['GET', 'POST'])
 
-        thread.start_new_thread(web.run, (), {'host': '0.0.0.0'})
+        _thread.start_new_thread(web.run, (), {'host': '0.0.0.0'})
 
     @command
     def learn(self, mask, target, args):
@@ -113,8 +113,8 @@ class Profiles(object):
         else:
             for line in profile.lines:
                 self.msg(mask, target, line)
-                if len(profile.lines) >= self.cfg.get('throttle_max'):
-                    sleep(self.cfg.get('throttle_time'))
+                if len(profile.lines) >= int(self.cfg.get('throttle_max')):
+                    sleep(int(self.cfg.get('throttle_time')))
 
     @command
     def forget(self, mask, target, args):

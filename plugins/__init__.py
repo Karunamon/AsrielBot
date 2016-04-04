@@ -1,6 +1,6 @@
-import ConfigParser
+import configparser
 
-ini = ConfigParser.ConfigParser()
+ini = configparser.ConfigParser()
 ini.read('config.ini')
 
 
