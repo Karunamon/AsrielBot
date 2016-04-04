@@ -50,7 +50,7 @@ class Dice(object):
         Options:
             -s, --shadowrun  Outputs dice in Shadowrun action format.
         """
-        d = re.match(r'(?P<rolls>\d#)?(?P<dice>\d+)d(?P<sides>\d+)(?P<math>[\+|\-|\*]\d+)?', args['<dice>'])
+        d = re.match(r'(?P<rolls>\d#)?(?P<dice>\d+)d(?P<sides>\d+)(?P<math>[\+\-\*]\d+)?', args['<dice>'])
         count = int(d.group('dice'))
         sides = int(d.group('sides'))
 
