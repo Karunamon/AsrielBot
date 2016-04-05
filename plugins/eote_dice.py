@@ -37,7 +37,9 @@ class DiceBag(object):
 #     # Failures cancel successes, threats cancel advantages.
 #     # This roll would have a net score of zero, aside from the force dice.
 
-
+# NOTE: Pay attention to the second item in the tuples - there's an ASCII ETX character
+# in front of each pair of numbers that may not be visible in the font you're using.\
+# This is used for mIRC color codes.
 dies = {
     'b': DiceBag([' ', ' ', 'AA', 'A', 'SA', 'S'], '1,11'),  # Boost
     's': DiceBag([' ', ' ', 'F', 'F', 'T', 'T'], '0,1'),  # Setback
@@ -77,19 +79,15 @@ class EoteDice(object):
         dice = args['<dice>']
         rex = r'(\d[bsadpcf])+?'
         to_roll = re.findall(rex, dice)  # type: List[str]
-        for group in to_roll:  # Filter out the Nones, they weren't actually rolled
+        for group in to_roll:
             dicecnt = group[0]
             dicetype = group[1]
             dicetable.append(dies[dicetype].draw(int(dicecnt)))
 
-        # So now we've got a list of tuples containing a list of strings and a string. Time to construct something
-        # actually usable.
-
-        # For every tuple in that list, let's construct a square bracketed thing with colors.
-
+        
         for roll in dicetable:
-            result += roll[1]  # The color code
-            result += str(roll[0])  # The roll table ['SS', 'AS']
-            result += ' '  # A space, and another color code character to terminate
+            result += roll[1]       # The color code
+            result += str(roll[0])  # The roll list ['SS', 'AS']
+            result += ' '          # A space, and another color code character to terminate
 
         self.msg(mask, target, result)
