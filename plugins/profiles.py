@@ -2,6 +2,7 @@ import _thread
 import os
 import random
 import uuid
+from enum import Enum
 from time import sleep
 
 import irc3
@@ -23,7 +24,44 @@ class Session(Document):
     pass
 
 
+class Action(Enum):
+    edit = 1000
+    fulledit = 1500
+    delete = 9000
+
+
 tmpl_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'web_templates')
+
+
+def is_allowed_to(action: Action, owner: str, record: Profile) -> bool:
+    """
+    Returns true or false depending on if the passed owner is allowed to carry out the specified Action. Note that
+    this is not a granular permission system, rather a set of sane best practices. A publicly editable profile
+    probably shouldn't be publicly deletable.
+
+    When hacking on this, assume that False will be returned, and define conditions where it should be True instead.
+    """
+    if record.public:
+        if action.edit:
+            return True
+    elif owner.lower() == record.owner:
+        return True
+    else:
+        return False
+
+
+def get_flags(record: Profile) -> str:
+    """
+    Returns a small textual string for certain special profiles.
+    If a profile is marked random, (r) is added.
+    If a profile is marked public, (p) is added.
+    """
+    ret = ""
+    if record.random:
+        ret += "(r)"
+    if record.public:
+        ret += "(p)"
+    return ret
 
 
 @irc3.plugin
@@ -62,12 +100,13 @@ class Profiles(object):
             profile = self.db.get(Profile, {'name': name})
         except Profile.DoesNotExist:
             profile = Profile(
-                    {
-                        'name': name,
-                        'owner': mask.nick.lower(),
-                        'lines': [info],
-                        'random': False
-                    }
+                {
+                    'name': name,
+                    'owner': mask.nick.lower(),
+                    'lines': [info],
+                    'random': False,
+                    'public': False
+                }
             )
             profile.save(self.db)
             self.db.commit()
@@ -78,7 +117,7 @@ class Profiles(object):
             self.msg(mask, target, "Found more than one %s. This is bad! Please notify the bot owner." % name)
             return
 
-        if profile.owner == mask.nick.lower():
+        if is_allowed_to(Action.edit, mask.nick, profile):
             lines_to_append = profile.lines
             lines_to_append.append(info)
             profile.save(self.db)
@@ -109,10 +148,10 @@ class Profiles(object):
             return
 
         if profile.random:
-            self.msg(mask, target, "(r) " + random.choice(profile.lines))
+            self.msg(mask, target, get_flags(profile) + random.choice(profile.lines))
         else:
             for line in profile.lines:
-                self.msg(mask, target, line)
+                self.msg(mask, target, get_flags(profile) + line)
                 if len(profile.lines) >= int(self.cfg.get('throttle_max')):
                     sleep(int(self.cfg.get('throttle_time')))
 
@@ -131,7 +170,7 @@ class Profiles(object):
             self.msg(mask, target, 'I cannot find "%s" in the records.' % name)
             return
 
-        if profile.owner == mask.nick.lower():
+        if is_allowed_to(Action.delete, mask.nick, profile):
             self.db.delete(profile)
             self.db.commit()
             self.msg(mask, target, "%s has been deleted." % name)
@@ -179,6 +218,36 @@ class Profiles(object):
         self.msg(mask, target, "%s is now owned by %s." % (name, newowner))
 
     @command
+    def toggle_public(self, mask, target, args):
+        """
+        Changes whether <name> is publicly editable or not
+
+        Usage:
+            %%toggle_public <name>
+        """
+        profile = args['<name>'].lower()
+        try:
+            profile = self.db.get(Profile, {'name': profile})
+        except Profile.DoesNotExist:
+            self.msg(mask, target, 'I cannot find "%s" in the records.' % profile)
+            return
+
+        if is_allowed_to(Action.edit, mask.nick, profile):
+            if profile.public:
+                profile.public = False
+                self.msg(mask, target, '"%s" is no longer publicly editable.' % profile)
+            else:
+                profile.public = True
+                self.msg(mask, target, '"%s" is now publicly editable.' % profile)
+            self.db.save(profile)
+            self.db.commit()
+            return
+        else:
+            self.msg(mask, target, 'You are not authorized to edit "%s". Ask %s instead.'
+                     % (profile, profile.owner))
+            return
+
+    @command
     def toggle_random(self, mask, target, args):
         """
         Toggle the randomness of an item, so that it shows a single random line instead of all lines when queried.
@@ -193,7 +262,7 @@ class Profiles(object):
             self.msg(mask, target, 'I cannot find "%s" in the records.' % name)
             return
 
-        if profile.owner == mask.nick.lower():
+        if is_allowed_to(Action.edit, mask.nick, profile):
             profile.random = not profile.random
             self.msg(mask, target, 'Random mode for %s is set to: %s' % (profile.name, profile.random))
             profile.save(self.db)
@@ -202,7 +271,9 @@ class Profiles(object):
             self.msg(mask, target, 'You are not authorized to edit "%s". Ask %s instead.'
                      % (name, profile.owner))
             irc3.base.logging.log(irc3.base.logging.WARN,
-                                  "%s tried to edit %s, but can't since it's owned by %s" % (mask.nick, profile.name, profile.owner))
+                                  "%s tried to edit %s, but can't since it's owned by %s" %
+                                  (mask.nick, profile.name, profile.owner)
+                                  )
 
     @event("(@(?P<tags>\S+) )?:(?P<mask>\S+) PRIVMSG (?P<target>\S+) :\?\? (?P<data>.*)")
     def easy_query(self, mask, target, data):
@@ -237,17 +308,17 @@ class Profiles(object):
             self.msg(mask, target, 'I cannot find "%s" in the records.' % name)
             return
 
-        if profile.owner == mask.nick.lower():
+        if is_allowed_to(Action.fulledit, mask.nick, profile):
             newses = Session(data)
             self.db.save(newses)
             self.db.commit()
             self.bot.privmsg(mask.nick,
                              "An editor has been set up for you at http://skaianet.tkware.us:5000/edit_web/%s" % str(
-                                     data['id']))
+                                 data['id']))
             self.bot.privmsg(mask.nick,
                              "Be very careful not to expose this address - with it, anyone can edit your stuff")
         else:
-            self.msg(mask, target, 'You are not authorized to edit "%s". Ask %s instead.'
+            self.msg(mask, target, 'You are not authorized to webedit "%s". Ask %s instead.'
                      % (name, profile.owner))
 
     def edit_web(self, args):
