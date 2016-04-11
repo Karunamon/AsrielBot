@@ -6,6 +6,7 @@ import irc3
 from irc3.dec import event
 from irc3.plugins.command import Commands, command
 
+from plugins import MessageRetargeter
 from plugins import PluginConfig
 
 
@@ -35,6 +36,8 @@ class Dice(object):
         self.bot = bot
         self.rng = random.SystemRandom()
         self.cfg = PluginConfig(self)
+        mtt = MessageRetargeter(bot)
+        self.msg = mtt.msg
 
     @command
     def roll(self, mask, target, args):
@@ -93,7 +96,7 @@ class Dice(object):
         if args["-s"]:
             result += (" %s" % count_shadowrun(dice))
 
-        self.bot.privmsg(target, str(dice) + result)
+        self.bot.msg(mask, target, str(dice) + result)
 
     @event("(@(?P<tags>\S+) )?:(?P<mask>\S+) PRIVMSG (?P<target>\S+) :(?P<data>\d+d\d+.*)")
     def easy_roll(self, mask, target, data):
