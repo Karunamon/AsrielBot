@@ -38,7 +38,7 @@ class DiceBag(object):
 #     # This roll would have a net score of zero, aside from the force dice.
 
 # NOTE: Pay attention to the second item in the tuples - there's an ASCII ETX character
-# in front of each pair of numbers that may not be visible in the font you're using.\
+# in front of each pair of numbers that may not be visible in the font you're using.
 # This is used for mIRC color codes.
 dies = {
     'b': DiceBag([' ', ' ', 'AA', 'A', 'SA', 'S'], '1,11'),  # Boost
@@ -84,7 +84,7 @@ class EoteDice(object):
             dicetype = group[1]
             dicetable.append(dies[dicetype].draw(int(dicecnt)))
 
-        
+
         for roll in dicetable:
             result += roll[1]       # The color code
             result += str(roll[0])  # The roll list ['SS', 'AS']
