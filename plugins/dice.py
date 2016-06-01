@@ -96,7 +96,7 @@ class Dice(object):
         if args["-s"]:
             result += (" %s" % count_shadowrun(dice))
 
-        self.bot.msg(mask, target, str(dice) + result)
+        self.msg(mask, target, str(dice) + result)
 
     @event("(@(?P<tags>\S+) )?:(?P<mask>\S+) PRIVMSG (?P<target>\S+) :(?P<data>\d+d\d+.*)")
     def easy_roll(self, mask, target, data):
