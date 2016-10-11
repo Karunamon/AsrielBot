@@ -6,7 +6,7 @@ import irc3
 from blitzdb import FileBackend, Document
 from irc3.plugins.command import command
 
-from plugins import PluginConfig, MessageRetargeter
+from Plugins import PluginConfig, MessageRetargeter
 
 
 class Memo(Document):

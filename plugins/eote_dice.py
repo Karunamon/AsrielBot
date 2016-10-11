@@ -6,8 +6,8 @@ from typing import List, Tuple
 import irc3
 from irc3.plugins.command import command
 
-from plugins import MessageRetargeter
-from plugins import PluginConfig
+from Plugins import MessageRetargeter
+from Plugins import PluginConfig
 
 
 class DiceBag(object):

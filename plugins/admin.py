@@ -11,7 +11,6 @@ class Admin(object):
 
     @command(permission='admin', show_in_help_list=False)
     def dumpstate(self, mask, target, args):
-        del target, args
         """
         Dump's the bot object's configuration state
 
@@ -22,7 +21,6 @@ class Admin(object):
 
     @command(permission='admin', show_in_help_list=False)
     def ev(self, mask, target, args):
-        del mask
         """
         Evaluate the python code provided. This is a MASSIVE security hole - choose your admins carefully.
 

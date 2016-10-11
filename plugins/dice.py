@@ -6,8 +6,8 @@ import irc3
 from irc3.dec import event
 from irc3.plugins.command import Commands, command
 
-from plugins import MessageRetargeter
-from plugins import PluginConfig
+from Plugins import MessageRetargeter
+from Plugins import PluginConfig
 
 
 def count_shadowrun(arg):
@@ -98,6 +98,17 @@ class Dice(object):
 
         self.msg(mask, target, str(dice) + result)
 
+    @command
+    def yn(self, mask, target, args):
+        """
+        A simplified dice roller that returns "yes" or "no"
+
+        Usage:
+            %%yn
+        """
+        self.msg(mask, target, "[1dyes] ==> " + random.choice(['Yes', 'No']))
+
     @event("(@(?P<tags>\S+) )?:(?P<mask>\S+) PRIVMSG (?P<target>\S+) :(?P<data>\d+d\d+.*)")
     def easy_roll(self, mask, target, data):
         self.bot.get_plugin(Commands).on_command(cmd='roll', mask=mask, target=target, data=data)
+

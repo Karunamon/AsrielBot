@@ -1,4 +1,6 @@
 import configparser
+#import yaml
+import random
 
 ini = configparser.ConfigParser()
 ini.read('config.ini')
@@ -60,13 +62,13 @@ class BotUtils:
     """
     def __init__(self, bot):
         self.bot = bot
+        #self.rmsg = yaml.load('random_messages.yml')
 
-    def cantfind_string(self, arg):
+    def get_rmsg(self, kind):
         """
-        Returns a friendly message indicating that the bot can't find something.
+        Returns a random string of text from the random messages file
 
-        :arg arg: The thing that couldn't be found
+        :args kind: Type of random text to return, based on the file section
+        :type kind: str
         """
-
-
-
+        return random.choice(list(self.rmsg.get([kind], None)))

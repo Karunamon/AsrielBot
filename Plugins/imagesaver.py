@@ -5,7 +5,7 @@ from urllib import error
 
 import irc3
 
-from plugins import PluginConfig
+from Plugins import PluginConfig
 
 
 @irc3.plugin
