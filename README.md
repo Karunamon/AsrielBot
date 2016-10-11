@@ -87,11 +87,23 @@ different line to come back every time? **?learn** the info as normal, adding
 as many lines as you please, then do **?toggle_random** on that item. From then
 on, the bot will retrieve a random item whenever an item is **??**'d.
 
+Items that are in random mode are denoted by an (r) when the line is displayed.
+
+## Public Lines
+
+Perhaps you want a profile to be editable by anyone. To do this, run 
+**?toggle_public** on that item. Then, anyone can edit (but not delete) that
+item.
+
+Items that are publicly editable are denoted by a (p) when the line is
+displayed.
+
 ### Web Editing
 
 Furthermore, a web editing system exists. A user can type **?edit (name)** on 
 something they own, and they will receive a randomly-generated URL to edit
 the profile in a graphical environment.
+
 ## Dice roller
 
 AsrielBot's dice roller allows you to roll arbitrary combinations of dice with

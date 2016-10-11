@@ -13,7 +13,7 @@ from flask.ext.mako import render_template
 from irc3 import event
 from irc3.plugins.command import command, Commands
 
-from plugins import PluginConfig, MessageRetargeter
+from Plugins import PluginConfig, MessageRetargeter
 
 
 class Profile(Document):
@@ -41,10 +41,10 @@ def is_allowed_to(action: Action, owner: str, record: Profile) -> bool:
 
     When hacking on this, assume that False will be returned, and define conditions where it should be True instead.
     """
-    if record.public:
-        if action.edit:
+    if record.get('public', False):  # Publicly editable profiles can be changed by anyone
+        if action.edit:  # But only edited, nothing else.
             return True
-    elif owner.lower() == record.owner:
+    elif owner.lower() == record.owner:  # The owner of a profile can do whatever they want
         return True
     else:
         return False
@@ -57,10 +57,10 @@ def get_flags(record: Profile) -> str:
     If a profile is marked public, (p) is added.
     """
     ret = ""
-    if record.random:
-        ret += "(r)"
-    if record.public:
-        ret += "(p)"
+    if record.get('random', False):
+        ret += "(r) "
+    if record.get('public', False):
+        ret += "(p) "
     return ret
 
 
@@ -225,26 +225,26 @@ class Profiles(object):
         Usage:
             %%toggle_public <name>
         """
-        profile = args['<name>'].lower()
+        name = args['<name>'].lower()
         try:
-            profile = self.db.get(Profile, {'name': profile})
+            profile = self.db.get(Profile, {'name': name})
         except Profile.DoesNotExist:
-            self.msg(mask, target, 'I cannot find "%s" in the records.' % profile)
+            self.msg(mask, target, 'I cannot find "%s" in the records.' % name)
             return
 
         if is_allowed_to(Action.edit, mask.nick, profile):
-            if profile.public:
+            if profile.get('public', False):
                 profile.public = False
-                self.msg(mask, target, '"%s" is no longer publicly editable.' % profile)
+                self.msg(mask, target, '"%s" is no longer publicly editable.' % name)
             else:
-                profile.public = True
-                self.msg(mask, target, '"%s" is now publicly editable.' % profile)
+                profile['public'] = True
+                self.msg(mask, target, '"%s" is now publicly editable.' % name)
             self.db.save(profile)
             self.db.commit()
             return
         else:
             self.msg(mask, target, 'You are not authorized to edit "%s". Ask %s instead.'
-                     % (profile, profile.owner))
+                     % (name, profile.owner))
             return
 
     @command
