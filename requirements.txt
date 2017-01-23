@@ -5,3 +5,4 @@ pytumblr
 flask
 Flask-Mako
 six
+archiveis
