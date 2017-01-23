@@ -1,3 +1,5 @@
 *.pyc
 *_db/
 .idea/
+.sync/
+.__pycache__/

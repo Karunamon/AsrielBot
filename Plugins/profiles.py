@@ -146,6 +146,9 @@ class Profiles(object):
         except Profile.DoesNotExist:
             self.msg(mask, target, 'I cannot find "%s" in the records.' % name)
             return
+        except KeyError:
+            self.msg(mask, target, "Key/index error, please notify the bot owner. You may ?forget this item to continue.")
+            return
 
         if profile.random:
             self.msg(mask, target, get_flags(profile) + random.choice(profile.lines))
