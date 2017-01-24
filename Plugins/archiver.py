@@ -25,8 +25,13 @@ class Archiver(object):
             %%archive <URL>
         """
         self.msg(mask, target, "Saving that...")
-        url = archiveis.capture(args['<URL>'])
-        self.msg(mask, target, args['<URL>'] + " ==Archived==> " + url)
+        try:
+            url = archiveis.capture(args['<URL>'])
+        except KeyError:
+            self.msg(mask, target, "Sorry, I couldn't get that one.")
+            return
+        else:
+            self.msg(mask, target, args['<URL>'] + " Archived==> " + url)
 
     @irc3.event(irc3.rfc.PRIVMSG)  # Triggered on every message anywhere.
     def auto_archive(self, target, mask, data, event):
